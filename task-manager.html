@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #taskInput, #timeInput, #dayInput {
+            width: 200px;
+            margin-right: 10px;
+        }
+        #addTaskBtn {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Task Manager</h1>
+    <input type="text" id="taskInput" placeholder="Enter task">
+    <input type="time" id="timeInput">
+    <input type="date" id="dayInput">
+    <button id="addTaskBtn">Add Task</button>
+    <ul id="taskList"></ul>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const taskInput = document.getElementById("taskInput");
+            const timeInput = document.getElementById("timeInput");
+            const dayInput = document.getElementById("dayInput");
+            const addTaskBtn = document.getElementById("addTaskBtn");
+            const taskList = document.getElementById("taskList");
+
+            addTaskBtn.addEventListener("click", function () {
+                const taskText = taskInput.value.trim();
+                const taskTime = timeInput.value;
+                const taskDay = dayInput.value;
+
+                if (taskText !== "") {
+                    const taskItem = document.createElement("li");
+                    taskItem.textContent = `${taskText} - Time: ${taskTime}, Day: ${taskDay}`;
+                    taskList.appendChild(taskItem);
+
+                    // You can send this information to the server if needed
+                    // using an XMLHttpRequest or Fetch API
+                    // Example: sendTaskToServer(taskText, taskTime, taskDay);
+
+                    // Clear input fields
+                    taskInput.value = "";
+                    timeInput.value = "";
+                    dayInput.value = "";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
