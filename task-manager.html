@@ -34,25 +34,75 @@
             const addTaskBtn = document.getElementById("addTaskBtn");
             const taskList = document.getElementById("taskList");
 
+            //FETCH AND DISPLAY NEW TASKS
+            function fetchAndDisplayTasks() {
+            fetch('http://localhost:3000/getTasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    //clear on screen tasks
+                    taskList.innerHTML = '';
+
+                    tasks.forEach(task => {
+                        const taskItem = document.createElement("li");
+                        taskItem.textContent = `${task.taskText} - Time: ${task.taskTime}, Day: ${task.taskDay}`;
+                        const deleteBtn = document.createElement("button");
+                        deleteBtn.textContent = "Delete";
+                        deleteBtn.addEventListener("click", () => deleteTask(task.id));
+                        taskItem.appendChild(deleteBtn);
+                        taskList.appendChild(taskItem);
+                    });
+                })
+                .catch(error => console.error('Error getting tasks:', error));
+            }
+
+            //DELETE TASKS
+            function deleteTask(taskId) {
+            fetch(`http://localhost:3000/deleteTask/${taskId}`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                fetchAndDisplayTasks();
+            })
+            .catch(error => console.error('Error deleting task:', error));
+            
+            }
+            fetchAndDisplayTasks();
+
+            //CREATE NEW TASK
             addTaskBtn.addEventListener("click", function () {
                 const taskText = taskInput.value.trim();
                 const taskTime = timeInput.value;
                 const taskDay = dayInput.value;
+
+                if (taskText === "" || taskTime === "" || taskDay === "") { //input validation
+                alert("Please fill in all fields!");
+                return;
+                }
 
                 if (taskText !== "") {
                     const taskItem = document.createElement("li");
                     taskItem.textContent = `${taskText} - Time: ${taskTime}, Day: ${taskDay}`;
                     taskList.appendChild(taskItem);
 
-                    // You can send this information to the server if needed
-                    // using an XMLHttpRequest or Fetch API
-                    // Example: sendTaskToServer(taskText, taskTime, taskDay);
+                    fetch('http://localhost:3000/addTask', { //send the info
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ taskText, taskTime, taskDay }),
+                    })
+                        .then(response => response.text())
+                        .then(data => console.log(data))
+                        .catch(error => console.error('Error:', error));
 
-                    // Clear input fields
+                    //clear all boxes on success
                     taskInput.value = "";
                     timeInput.value = "";
                     dayInput.value = "";
                 }
+                fetchAndDisplayTasks();
             });
         });
     </script>

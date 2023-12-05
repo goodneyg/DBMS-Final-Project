@@ -1,41 +1,56 @@
-const http = require("http");
-const fs = require("fs");
+const express = require('express');
+const bodyParser = require('body-parser');
+const mysql = require('mysql2');
+const cors = require('cors');
 
-const hostname = "127.0.0.1";
-const port = 8000;
+const app = express();
+const port = 3000;
 
-const server = http.createServer(function (req, res) {
-    if (req.method === "GET") {
-        // Serve the HTML file for the front-end
-        fs.readFile("task-manager.html", function (err, data) {
-            if (err) {
-                console.error("Error reading HTML file:", err);
-                res.writeHead(500, { "Content-Type": "text/plain" });
-                res.end("Internal Server Error");
-            } else {
-                res.writeHead(200, { "Content-Type": "text/html" });
-                res.end(data);
-            }
-        });
-    } else if (req.method === "POST") {
-        // Handle task submission
-        let body = "";
-        req.on("data", function (chunk) {
-            body += chunk;
-        });
+app.use(cors()); //cors is needed to work on firefox
+app.use(bodyParser.json());
 
-        req.on("end", function () {
-            const taskData = JSON.parse(body);
-            console.log("Received task:", taskData);
-            res.writeHead(200, { "Content-Type": "text/plain" });
-            res.end("Task added successfully");
-        });
-    } else {
-        res.writeHead(405, { "Content-Type": "text/plain" });
-        res.end("Method Not Allowed");
-    }
+//SQL LOG ON INFO
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'MYsqlpass123*',
+    database: 'dbms',
 });
 
-server.listen(port, hostname, function () {
-    console.log(`Server running at http://${hostname}:${port}`);
+db.connect((err) => {
+    console.log('Connected to MySQL');
+});
+
+//ADD A TASK
+app.post('/addTask', (req, res) => {
+    const taskData = req.body;
+    console.log('new task:', taskData);
+    const insertTaskQuery = 'INSERT INTO tasks (taskText, taskTime, taskDay) VALUES (?, ?, ?)';
+    const values = [taskData.taskText, taskData.taskTime, taskData.taskDay];
+    db.query(insertTaskQuery, values, (result) => {
+        console.log('Task inserted into database with ID:', result.insertId);
+        res.json({message: 'recieved'});
+    });
+});
+
+//GET ALL TASKS
+app.get('/getTasks', (req, res) => {
+    const getAllTasksQuery = 'SELECT * FROM tasks';
+    db.query(getAllTasksQuery, (results) => {
+        res.json(results);
+    });
+});
+
+//DELETE A TASK
+app.delete('/deleteTask/:taskId', (req, res) => {
+    const taskId = req.params.taskId;
+    const deleteTaskQuery = 'DELETE FROM tasks WHERE id = ?';
+    db.query(deleteTaskQuery, [taskId], (result) => {
+        console.log('task deleted:', taskId);
+        res.json({message: 'Task deleted successfully'});
+    });
+});
+
+app.listen(port, () => {
+    console.log(`Server is running: ${port}`);
 });
