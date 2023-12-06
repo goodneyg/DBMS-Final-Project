@@ -133,12 +133,12 @@
             }
 
             function editTask(taskDiv) {
-                const currentText = taskDiv.textContent;
+                const currentText = taskDiv.firstChild.textContent;
                 const newName = prompt("Edit task name:", currentText.split(" - ")[0]);
                 const newTime = prompt("Edit task time:", currentText.split(" - ")[1]);
 
                 if (newName !== null && newTime !== null) {
-                    taskDiv.textContent = `${newName} - Time: ${newTime}`;
+                    taskDiv.firstChild.textContent = `${newName} - Time: ${newTime}`;
                 }
             }
 
@@ -156,13 +156,13 @@
                     calendarBody.removeChild(calendarBody.firstChild);
                 }
 
-                const firstDayOfMonth = new Date(Date.UTC(year, month+1, 1));
+                const firstDayOfMonth = new Date(Date.UTC(year, month, 1));
                 const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
                 const dayOfWeek = firstDayOfMonth.getUTCDay();
 
                 // Set the month and year in the header
                 const monthYearText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(firstDayOfMonth);
-                monthYearHeader.textContent = `Calendar - ${monthYearText}`;
+                monthYearHeader.textContent = `Calendar - December`;
 
                 // Populate calendar days
                 let currentDay = 1;
