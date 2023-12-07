@@ -38,8 +38,8 @@ app.post('/register', (req, res) => {
     const values = [userData.username, userData.password];
 
     db.query(insertUserQuery, values, (err, result) => {
-        console.log('User registered into database');
-        res.json({ message: 'User registered successfully' });
+        console.log('user registered');
+        res.json({ message: 'user registered' });
     });
 });
 
