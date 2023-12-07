@@ -1,15 +1,21 @@
+//Garrett Goodney & Ben Utter
+//Database Systems G01
+//12/7/23
+//DBMS Final Project
+
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
-const cors = require('cors');
+const cors = require('cors'); //required to work on firefox (not sure why but shows in console if not required)
 
 const app = express();
 const port = 3000;
 
-app.use(cors()); //cors is needed to work on firefox
+app.use(cors()); 
 app.use(bodyParser.json());
 
-//SQL LOG ON INFO
+//sql info goes here
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -17,40 +23,79 @@ const db = mysql.createConnection({
     database: 'dbms',
 });
 
-db.connect((err) => {
+db.connect(() => {
     console.log('Connected to MySQL');
 });
 
-//ADD A TASK
+// Register a new user (INSERT INTO)
+app.post('/register', (req, res) => {
+    const userData = req.body;
+    const insertUser = 'INSERT INTO users (username, password) VALUES (?, ?)';
+    const values = [userData.username, userData.password];
+    db.query(insertUser, values, () => {
+        res.json({ message: 'registration complete' });
+    });
+});
+
+
+// Login (SELECT)
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    const getUserQuery = 'SELECT * FROM users WHERE username = ? AND password = ?';
+    const values = [username, password];
+
+    db.query(getUserQuery, values, (err, results) => {
+        if (err) {
+            console.error('Error logging in', err);
+            res.status(500).json({ error: 'Error logging in' });
+            return;
+        }
+
+        if (results.length > 0) {
+            const user = results[0];
+            res.json({ message: 'Login successful', user });
+        } else {
+            res.status(401).json({ error: 'Invalid credentials' });
+        }
+    });
+});
+
+
+// Add a task (SELECT)
 app.post('/addTask', (req, res) => {
     const taskData = req.body;
-    console.log('new task:', taskData);
-    const insertTaskQuery = 'INSERT INTO tasks (taskText, taskTime, taskDay) VALUES (?, ?, ?)';
-    const values = [taskData.taskText, taskData.taskTime, taskData.taskDay];
-    db.query(insertTaskQuery, values, (result) => {
-        console.log('Task inserted into database with ID:', result.insertId);
-        res.json({message: 'recieved'});
+    const userId = req.headers['user-id'];
+    const insertTask = 'INSERT INTO tasks (taskText, taskTime, taskDay, userId) VALUES (?, ?, ?, ?)';
+    const values = [taskData.taskText, taskData.taskTime, taskData.taskDay, userId];
+    db.query(insertTask, values, () => {
+        res.json({ message: 'task added' });
     });
 });
 
-//GET ALL TASKS
+
+// Get all tasks for a specific user (SELECT)
 app.get('/getTasks', (req, res) => {
-    const getAllTasksQuery = 'SELECT * FROM tasks';
-    db.query(getAllTasksQuery, (results) => {
-        res.json(results);
+    const userId = req.query.userId;
+    const getAllTasks = 'SELECT * FROM tasks WHERE userId = ?';
+    db.query(getAllTasks, [userId], () => {
+        res.json({ message: 'tasks recieved successfully' });
     });
 });
 
-//DELETE A TASK
+
+// Delete a task (DELETE)
 app.delete('/deleteTask/:taskId', (req, res) => {
     const taskId = req.params.taskId;
-    const deleteTaskQuery = 'DELETE FROM tasks WHERE id = ?';
-    db.query(deleteTaskQuery, [taskId], (result) => {
-        console.log('task deleted:', taskId);
-        res.json({message: 'Task deleted successfully'});
+    const deleteTask = 'DELETE FROM tasks WHERE id = ?';
+    db.query(deleteTask, [taskId], () => {
+        res.json({ message: 'task deleted successfully' });
     });
 });
 
+// Edit a task (UPDATE)
+
+
+
 app.listen(port, () => {
-    console.log(`Server is running: ${port}`);
+    console.log(`server is running on port: ${port}`);
 });
