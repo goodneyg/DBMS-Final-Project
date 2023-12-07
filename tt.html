@@ -61,6 +61,22 @@
     <button id="addTaskBtn">Add Task</button>
     <ul id="taskList"></ul>
 
+    <h2 id="monthYear">Calendar</h2>
+    <table id="calendar">
+        <thead>
+            <tr>
+                <th>Sun</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+            </tr>
+        </thead>
+        <tbody id="calendarBody"></tbody>
+    </table>
+
 <script>
 //js begins
 document.addEventListener("DOMContentLoaded", function () {
@@ -262,6 +278,96 @@ function editTask(taskId, currentText, currentTime,) {
             .catch(error => console.error('Error updating task:', error));
     }
 }
+
+//update calendar
+function updateCalendar(taskText, taskTime, taskDay) {
+    const date = new Date(`${taskDay}T${taskTime}`);
+    const dayOfMonth = date.getUTCDate();
+    const dayOfWeek = date.getUTCDay();
+    const calendarCell = document.querySelector(`#calendarBody td[data-day="${dayOfMonth}"] .tasks`);
+
+    const taskDiv = document.createElement("div");
+    taskDiv.className = "task";
+    taskDiv.textContent = `${taskText} - Time: ${taskTime}`;
+
+    const actionsDiv = document.createElement("div");
+    actionsDiv.className = "actions";
+
+    const editButton = document.createElement("button");
+    editButton.textContent = "Edit";
+    editButton.addEventListener("click", function () {
+        editTask(taskDiv);
+    });
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", function () {
+        deleteTask(taskDiv);
+    });
+
+    actionsDiv.appendChild(editButton);
+    actionsDiv.appendChild(deleteButton);
+    taskDiv.appendChild(actionsDiv);
+
+    calendarCell.appendChild(taskDiv);
+}
+function generateCalendar(year, month) {
+    const calendarBody = document.querySelector("#calendarBody");
+
+    // Clear previous calendar
+    while (calendarBody.firstChild) {
+        calendarBody.removeChild(calendarBody.firstChild);
+    }
+
+    const firstDayOfMonth = new Date(Date.UTC(year, month, 1));
+    const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    const dayOfWeek = firstDayOfMonth.getUTCDay();
+
+    // Set the month and year in the header
+    const monthYearText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(firstDayOfMonth);
+    monthYearHeader.textContent = `Calendar - December`;
+
+    // Populate calendar days
+    let currentDay = 1;
+    for (let week = 0; week < 6; week++) {
+        const tr = document.createElement("tr");
+        calendarBody.appendChild(tr);
+
+        for (let day = 0; day < 7; day++) {
+            const td = document.createElement("td");
+            if (week === 0 && day < dayOfWeek) {
+                // Empty cell before the first day of the month
+                td.textContent = '';
+            } else if (currentDay <= daysInMonth) {
+                // Populate the actual days of the month
+                td.setAttribute("data-day", currentDay);
+
+                const dayDiv = document.createElement("div");
+                dayDiv.className = "day";
+                dayDiv.textContent = currentDay;
+                td.appendChild(dayDiv);
+
+                const tasksDiv = document.createElement("div");
+                tasksDiv.className = "tasks";
+                td.appendChild(tasksDiv);
+
+                currentDay++;
+            }
+            tr.appendChild(td);
+        }
+    }
+}
+//get year and month for calendar
+function getCurrentYearAndMonth() {
+    const currentDate = new Date();
+    const currentYear = currentDate.getUTCFullYear();
+    const currentMonth = currentDate.getUTCMonth();
+    return { currentYear, currentMonth };
+}
+
+const { currentYear, currentMonth } = getCurrentYearAndMonth();
+generateCalendar(currentYear, currentMonth);
+
 
 });
 </script>
