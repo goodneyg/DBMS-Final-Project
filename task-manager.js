@@ -1,3 +1,8 @@
+//Garrett Goodney & Ben Utter
+//Database Systems G01
+//12/7/23
+//DBMS Final Project
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
